@@ -1,6 +1,7 @@
 // by Nikola TV 2022
 //-----------------------НАСТРОЙКИ---------------------
 #define vibro 6         // пин дополнительного датчика вибрации
+#define vibro_alert false         // подключен ли дополнительный датчик вибрации
 #define battery_min 3000     // минимальный уровень заряда батареи для отображения
 String phone = "+7xxxxxxxxxx";     // Телефон на который будут отправляться смс о тревоге
 String phones = "+7xxxxxxxxxx, +7xxxxxxxxxx, +7xxxxxxxxxx";   // Белый список телефонов от которых будут обрабатываться сообщения
@@ -32,13 +33,20 @@ String _response = "";
 void setup() {
 
   Serial.begin(9600);                                         // Скорость обмена данными с компьютером
-  SIM800.begin(9600);                                         // Скорость обмена данными с модемом
+  SIM800.begin(9600);
+
+
   Serial.println("Start!");
   pinMode(5, OUTPUT);
   digitalWrite(5, LOW);
   pinMode(vibro, INPUT);
-  
-  radio.begin();            //активировать модуль
+
+  if (radio.begin()) {
+    Serial.println("nrf24l01 running");
+  }
+  else {
+    Serial.println("nrf24l01 not running");
+  }
   radio.setAutoAck(1);      //режим подтверждения приёма, 1 вкл 0 выкл
   radio.setRetries(0, 50);  //(время между попыткой достучаться, число попыток)
   radio.enableAckPayload(); //разрешить отсылку данных в ответ на входящий сигнал
@@ -95,7 +103,7 @@ bool akkumul = false;
 void loop() {
   if (protectionStatus == 1) {                                     //если охрана включена
 
-    if(digitalRead(vibro) == 1){
+    if(digitalRead(vibro) == 1 && vibro_alert == true){
         sendSMS(phone, "someone is touching the main module");  //СМС
       }}
 
